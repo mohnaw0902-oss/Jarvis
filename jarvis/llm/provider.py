@@ -28,17 +28,6 @@ class LLMResponse(BaseModel):
 
 
 class LLMProvider(Protocol):
-    @staticmethod
-    def _to_responses_input(message: ChatMessage) -> dict[str, Any]:
-        if message.role != "tool":
-            return {"role": message.role, "content": message.content}
-        payload = json.loads(message.content)
-        return {
-            "type": "function_call_output",
-            "call_id": payload["call_id"],
-            "output": json.dumps(payload),
-        }
-
     async def respond(
         self, messages: list[ChatMessage], tools: list[dict[str, Any]]
     ) -> LLMResponse: ...
@@ -58,6 +47,17 @@ class OpenAIResponsesProvider:
     @property
     def _headers(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {self._api_key}"}
+
+    @staticmethod
+    def _to_responses_input(message: ChatMessage) -> dict[str, Any]:
+        if message.role != "tool":
+            return {"role": message.role, "content": message.content}
+        payload = json.loads(message.content)
+        return {
+            "type": "function_call_output",
+            "call_id": payload["call_id"],
+            "output": json.dumps(payload),
+        }
 
     def _payload(
         self, messages: list[ChatMessage], tools: list[dict[str, Any]], stream: bool = False

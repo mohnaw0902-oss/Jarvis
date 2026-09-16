@@ -60,3 +60,26 @@ def test_responses_provider_parses_text_and_function_calls() -> None:
 
     assert response.text == "Done."
     assert response.tool_calls == [ToolCall(id="call_1", name="clock", arguments={})]
+
+
+def test_responses_provider_serializes_tool_result_as_function_output() -> None:
+    from jarvis.llm.provider import OpenAIResponsesProvider
+
+    provider = OpenAIResponsesProvider("https://example.test/v1", "secret", "model", 0.2)
+    payload = provider._payload(
+        [
+            ChatMessage(
+                role="tool",
+                content='{"call_id": "call_1", "name": "clock", "output": "now", "error": null}',
+            )
+        ],
+        [],
+    )
+
+    assert payload["input"] == [
+        {
+            "type": "function_call_output",
+            "call_id": "call_1",
+            "output": '{"call_id": "call_1", "name": "clock", "output": "now", "error": null}',
+        }
+    ]
