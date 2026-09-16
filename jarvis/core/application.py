@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from jarvis.brain.engine import Brain
 from jarvis.config.settings import Settings
 from jarvis.database.session import AsyncEngine, create_schema, create_session_factory
-from jarvis.llm.provider import LLMProvider, OpenAICompatibleProvider, UnconfiguredProvider
+from jarvis.llm.provider import LLMProvider, OpenAIResponsesProvider, UnconfiguredProvider
 from jarvis.memory.manager import MemoryManager
 from jarvis.tools.builtin.calculator import CalculatorTool
 from jarvis.tools.builtin.clock import ClockTool
@@ -37,7 +37,7 @@ def create_application(settings: Settings | None = None) -> Application:
     engine, sessions = create_session_factory(current.database_url)
     provider: LLMProvider = UnconfiguredProvider()
     if current.llm_base_url and current.llm_model and current.llm_api_key:
-        provider = OpenAICompatibleProvider(
+        provider = OpenAIResponsesProvider(
             current.llm_base_url,
             current.llm_api_key.get_secret_value(),
             current.llm_model,
